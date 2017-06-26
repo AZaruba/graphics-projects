@@ -39,6 +39,7 @@ main(int argc, char** argv)
     while (!glfwWindowShouldClose(window))
     {
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     glfwTerminate();
