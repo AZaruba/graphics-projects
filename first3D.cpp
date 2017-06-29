@@ -15,6 +15,8 @@
 #include <OpenGL/glu.h>
 #include <GLFW/glfw3.h>
 
+#include "shaderReader.cpp"
+
 /*
  * TODO: 
  * 1) Create a way to take a glsl file and turn it into a sring for use here
@@ -23,13 +25,7 @@
  */
 
 // temporary
-const char* basicShader =
-"#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
+const char* basicShader;
 
 // z-coord is zero to appear 2D
 float triVerts[] = {
@@ -53,8 +49,14 @@ bufferSetup(unsigned int* buffer)
 }
 
 void
-compileShader(unsigned int* shaderLoc)
+compileShader(unsigned int* shaderLoc, const char* shaderName)
 {
+    basicShader = parseShader(shaderName);
+    char infoLog[512];
+    if (!*basicShader) {
+        std::cout << "ERROR: could not parse shader file " << shaderName << "\n";
+        return;
+    }
     *shaderLoc = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(*shaderLoc, 1, &basicShader, NULL);
     glCompileShader(*shaderLoc);
@@ -62,13 +64,15 @@ compileShader(unsigned int* shaderLoc)
     glGetShaderiv(*shaderLoc, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        std::cout << "ERROR: shader not compiled correctly\n";
+        glGetShaderInfoLog(*shaderLoc, 512, NULL, infoLog);
+        std::cout << "ERROR: shader failed to compile\n" << infoLog << '\n';
     }
 }
 
 int
 main(int argc, char** argv)
 {
+    
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -86,7 +90,8 @@ main(int argc, char** argv)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     
     bufferSetup(&vertBuff);
-    compileShader(&shader);
+    std::string tempShader = "vertShader";
+    compileShader(&shader, tempShader.c_str());
     
     while (!glfwWindowShouldClose(window))
     {
