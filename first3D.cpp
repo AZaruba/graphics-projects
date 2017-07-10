@@ -25,7 +25,8 @@
  */
 
 // temporary
-const char* basicShader;
+const char* vertShaderCode;
+const char* fragShaderCode;
 
 // z-coord is zero to appear 2D
 float triVerts[] = {
@@ -35,7 +36,10 @@ float triVerts[] = {
 };
 
 unsigned int vertBuff;
-unsigned int shader;
+unsigned int vertexShader;
+unsigned int fragShader;
+
+unsigned int shaderProgram;
 
 void
 framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -48,18 +52,36 @@ bufferSetup(unsigned int* buffer)
     glBufferData(GL_ARRAY_BUFFER, sizeof(triVerts), triVerts, GL_STATIC_DRAW); // GL_STREAM???
 }
 
+/* shaderType: 0 - vertex shader
+ *             1 - fragment shader
+ *
+ */
 void
-compileShader(unsigned int* shaderLoc, const char* shaderName)
+compileShader(unsigned int* shaderLoc, const char* shaderName, const char* basicShader, int shaderType)
 {
     basicShader = parseShader(shaderName);
     char infoLog[512];
-    if (!*basicShader) {
+    if (!*basicShader)
+    {
         std::cout << "ERROR: could not parse shader file " << shaderName << "\n";
         return;
     }
-    *shaderLoc = glCreateShader(GL_VERTEX_SHADER);
+    
+    switch (shaderType)
+    {
+        case 0 : { *shaderLoc = glCreateShader(GL_VERTEX_SHADER); break; }
+        case 1 : { *shaderLoc = glCreateShader(GL_FRAGMENT_SHADER); break;}
+        break;
+        default :
+        {
+            std::cout << "ERROR: invalid shader type\nSHADER TYPES\n"
+              << "0 - vertex shader\n1 - fragment shader\n";
+        }
+    }
+    
     glShaderSource(*shaderLoc, 1, &basicShader, NULL);
     glCompileShader(*shaderLoc);
+    
     int success;
     glGetShaderiv(*shaderLoc, GL_COMPILE_STATUS, &success);
     if (!success)
@@ -67,6 +89,28 @@ compileShader(unsigned int* shaderLoc, const char* shaderName)
         glGetShaderInfoLog(*shaderLoc, 512, NULL, infoLog);
         std::cout << "ERROR: shader failed to compile\n" << infoLog << '\n';
     }
+}
+
+void
+linkProgram(unsigned int* vs, unsigned int* fs)
+{
+    char infoLog[512];
+    
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, *vs);
+    glAttachShader(shaderProgram, *fs);
+    glLinkProgram(shaderProgram);
+    
+    int success;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR: shaders failed to link\n" << infoLog << '\n';
+    }
+    
+    glDeleteShader(*vs);
+    glDeleteShader(*fs);
 }
 
 int
@@ -91,7 +135,12 @@ main(int argc, char** argv)
     
     bufferSetup(&vertBuff);
     std::string tempShader = "vertShader";
-    compileShader(&shader, tempShader.c_str());
+    compileShader(&vertexShader, tempShader.c_str(), vertShaderCode, 0);
+    
+    tempShader = "fragShader";
+    compileShader(&fragShader, tempShader.c_str(), fragShaderCode, 1);
+    
+    linkProgram(&vertexShader, &fragShader);
     
     while (!glfwWindowShouldClose(window))
     {
