@@ -11,7 +11,8 @@
 #include <string>
 #include <iostream>
 
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
+#define __gl_h_
 #include <OpenGL/glu.h>
 #include <GLFW/glfw3.h>
 
@@ -36,6 +37,8 @@ float triVerts[] = {
 };
 
 unsigned int vertBuff;
+unsigned int vertArray;
+
 unsigned int vertexShader;
 unsigned int fragShader;
 
@@ -45,11 +48,24 @@ void
 framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void
-bufferSetup(unsigned int* buffer)
+bufferSetup(unsigned int* vb, unsigned int* va)
 {
-    glGenBuffers(1, buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, *buffer);
+    
+    glGenBuffers(1, vb);
+    glGenVertexArrays(1, va);
+    
+    glBindVertexArray(*va);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, *vb);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triVerts), triVerts, GL_STATIC_DRAW); // GL_STREAM???
+    
+    //                   (location, vertex size, data type, normalize?, "stride", offset)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    glBindVertexArray(0);
 }
 
 /* shaderType: 0 - vertex shader
@@ -133,7 +149,7 @@ main(int argc, char** argv)
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     
-    bufferSetup(&vertBuff);
+    bufferSetup(&vertBuff, &vertArray);
     std::string tempShader = "vertShader";
     compileShader(&vertexShader, tempShader.c_str(), vertShaderCode, 0);
     
@@ -144,6 +160,18 @@ main(int argc, char** argv)
     
     while (!glfwWindowShouldClose(window))
     {
+        //input
+        //processInput(window);
+        
+        //render
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        //draw
+        glUseProgram(shaderProgram);
+        glBindVertexArray(vertArray);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
