@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 
 #include "shaderReader.cpp"
+#include "vertexReader.cpp"
 
 /*
  * TODO: 
@@ -35,6 +36,10 @@ float triVerts[] = {
     0.0f,0.5f,0.0f,
     0.5f,0.25f,0.0f
 };
+
+// test float pointer
+float* testVerts;
+// test float pointer
 
 unsigned int vertBuff;
 unsigned int vertArray;
@@ -132,7 +137,6 @@ linkProgram(unsigned int* vs, unsigned int* fs)
 int
 main(int argc, char** argv)
 {
-    
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
