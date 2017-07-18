@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
 
@@ -32,29 +33,23 @@ getNumVertices(std::ifstream& vertFile)
     return 0;
 }
 
-float*
+std::vector<float>
 convertVerts(std::ifstream& vertFile, int numVerts)
 {
-    float* vertArray = (float*)malloc(sizeof(float) * numVerts);
-    if (vertArray == NULL)
-    {
-        std::cout << "ERROR: malloc failed";
-        return nullptr;
-    }
-    
-    float* topOfArray = vertArray;
+    std::vector<float> vertArray;
     
     int counter = 0;
     char line[14];
+    float floatStorage;
     
     while (counter < numVerts)
     {
         vertFile.getline(line, 14);
-        sscanf(line,"%f",&vertArray[counter]);
+        sscanf(line,"%f",&floatStorage);
+        vertArray.push_back(floatStorage);
         counter++;
     }
-    
-    return topOfArray;
+    return vertArray;
 }
 
 int
@@ -82,9 +77,10 @@ grabVertCount(const char* fileName)
 
 }
 
-float*
+std::vector<float>
 parseArray(const char* fileName)
 {
+    std::vector<float> vertArray;
     std::ifstream vertexFile;
     vertexFile.open(fileName, std::ios::in);
     
@@ -95,9 +91,9 @@ parseArray(const char* fileName)
         {
             std::cout << "ERROR: Invalid vertex array size\n";
             vertexFile.close();
-            return NULL;
+            return vertArray;
         }
-        float* vertArray = convertVerts(vertexFile, numVertices);
+        vertArray = convertVerts(vertexFile, numVertices);
         vertexFile.close();
         return vertArray;
         
@@ -105,8 +101,8 @@ parseArray(const char* fileName)
     else
     {
         vertexFile.close();
-        return NULL;
+        return vertArray;
     }
     vertexFile.close();
-    return NULL;
+    return vertArray;
 }

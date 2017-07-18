@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -38,7 +39,7 @@ float triVerts[] = {
 };
 
 // test float pointer
-float* testVerts;
+std::vector<float> testVerts;
 // test float pointer
 
 unsigned int vertBuff;
@@ -62,7 +63,7 @@ bufferSetup(unsigned int* vb, unsigned int* va)
     glBindVertexArray(*va);
     
     glBindBuffer(GL_ARRAY_BUFFER, *vb);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triVerts), triVerts, GL_STATIC_DRAW); // GL_STREAM???
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * testVerts.size(), &testVerts[0], GL_STATIC_DRAW); // GL_STREAM???
     
     //                   (location, vertex size, data type, normalize?, "stride", offset)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -152,6 +153,8 @@ main(int argc, char** argv)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    
+    testVerts = parseArray("testVerts.zvx");
     
     bufferSetup(&vertBuff, &vertArray);
     std::string tempShader = "vertShader";
