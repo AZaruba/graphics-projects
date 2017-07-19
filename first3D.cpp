@@ -31,19 +31,18 @@
 const char* vertShaderCode;
 const char* fragShaderCode;
 
-// z-coord is zero to appear 2D
-float triVerts[] = {
-    0.0f,0.0f,0.0f,
-    0.0f,0.5f,0.0f,
-    0.5f,0.25f,0.0f
-};
-
 // test float pointer
 std::vector<float> testVerts;
+unsigned int indices[] =
+{
+  0, 1, 3,
+  1, 2, 3
+};
 // test float pointer
 
 unsigned int vertBuff;
 unsigned int vertArray;
+unsigned int elBuffer;
 
 unsigned int vertexShader;
 unsigned int fragShader;
@@ -54,17 +53,21 @@ void
 framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void
-bufferSetup(unsigned int* vb, unsigned int* va)
+bufferSetup(unsigned int* vb, unsigned int* va, unsigned int* eb)
 {
     
     glGenBuffers(1, vb);
+    glGenBuffers(1, eb);
     glGenVertexArrays(1, va);
     
     glBindVertexArray(*va);
     
     glBindBuffer(GL_ARRAY_BUFFER, *vb);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *eb);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * testVerts.size(), &testVerts[0], GL_STATIC_DRAW); // GL_STREAM???
     
+    // use the index because we only have four vertices
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     //                   (location, vertex size, data type, normalize?, "stride", offset)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -156,7 +159,7 @@ main(int argc, char** argv)
     
     testVerts = parseArray("testVerts.zvx");
     
-    bufferSetup(&vertBuff, &vertArray);
+    bufferSetup(&vertBuff, &vertArray, &elBuffer);
     std::string tempShader = "vertShader";
     compileShader(&vertexShader, tempShader.c_str(), vertShaderCode, 0);
     
@@ -177,7 +180,8 @@ main(int argc, char** argv)
         //draw
         glUseProgram(shaderProgram);
         glBindVertexArray(vertArray);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+        glBindVertexArray(0);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
